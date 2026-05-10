@@ -25,7 +25,7 @@ const server = new MCPServer({
   ],
 });
 
-/** Shared by elicitation form and get-name tool arguments. */
+/** Shared by say-hello-to-me and get-name tool arguments. */
 const personInputSchema = z.object({
   name: z
     .string()
@@ -110,37 +110,6 @@ function chatMarkdown(
   ].join("\n");
 }
 
-/** One field per step — hosts render a single control per elicit round-trip. */
-const elicitStepNameSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Enter your name")
-    .max(64, "Max 64 characters")
-    .describe("Your name"),
-});
-
-const elicitStepFromSchema = z.object({
-  from: z
-    .string()
-    .min(1, "Say where you're from")
-    .max(128, "Keep it under 128 characters")
-    .describe("City, region, or country"),
-});
-
-const elicitStepAgeSchema = z.object({
-  age: z.coerce
-    .number({ error: () => ({ message: "Enter a number" }) })
-    .int()
-    .min(1, "Age must be at least 1")
-    .max(120, "Please enter a realistic age")
-    .describe("Age in years"),
-});
-
-const MSG_STEP_1 =
-  "Step 1 of 3. What's your name? (Your greeting appears in chat after all steps.)";
-const MSG_STEP_2 = "Step 2 of 3. Where are you from?";
-const MSG_STEP_3 = "Step 3 of 3. How old are you?";
-
 function normalizePerson(raw: Person): { name: string; from: string; age: number } | null {
   const name = raw.name.trim();
   const from = raw.from.trim();
@@ -174,86 +143,40 @@ function buildResponse(person: { name: string; from: string; age: number }) {
   return mix(markdown(md), structured);
 }
 
+async function handlePersonHello(args: Person) {
+  const person = normalizePerson(args);
+  if (!person) {
+    return error("Name and ‘where you're from’ cannot be empty.");
+  }
+  try {
+    return buildResponse(person);
+  } catch (e) {
+    return error(
+      e instanceof Error ? e.message : "Failed to generate ASCII art.",
+    );
+  }
+}
+
 server.tool(
   {
     name: "say-hello-to-me",
     description:
-      "Three-step form (name → where you're from → age), one question at a time via MCP elicitation. Then posts greeting, ASCII art, and visitor count in chat only.",
-    schema: z.object({}),
+      "Personal greeting with ASCII art. Needs name, where the user is from, and age. Hosts like ChatGPT should ask the user in chat, then call this tool with those fields (MCP elicitation is not required).",
+    schema: personInputSchema,
     outputSchema: asciiOutputSchema,
   },
-  async (_params, ctx) => {
-    if (!ctx?.client?.can?.("elicitation")) {
-      return markdown(
-        [
-          "**This client did not advertise MCP elicitation**, so there’s no inline form here.",
-          "",
-          'Ask the assistant to call **`get-name`** with JSON like `{"name":"Ada","from":"Lisbon","age":32}`, or use a host that supports **elicitation**.',
-        ].join("\n"),
-      );
-    }
-
-    const r1 = await ctx.elicit(MSG_STEP_1, elicitStepNameSchema);
-    if (r1.action === "decline") return error("You declined the name step.");
-    if (r1.action === "cancel") return error("Cancelled before entering your name.");
-    if (r1.action !== "accept" || !r1.data?.name?.trim()) {
-      return error("No name was provided.");
-    }
-
-    const r2 = await ctx.elicit(MSG_STEP_2, elicitStepFromSchema);
-    if (r2.action === "decline") return error("You declined the location step.");
-    if (r2.action === "cancel") return error("Cancelled before entering where you're from.");
-    if (r2.action !== "accept" || !r2.data?.from?.trim()) {
-      return error("No location was provided.");
-    }
-
-    const r3 = await ctx.elicit(MSG_STEP_3, elicitStepAgeSchema);
-    if (r3.action === "decline") return error("You declined the age step.");
-    if (r3.action === "cancel") return error("Cancelled before entering your age.");
-    if (r3.action !== "accept" || r3.data === undefined) {
-      return error("No age was provided.");
-    }
-
-    const person = normalizePerson({
-      name: r1.data.name,
-      from: r2.data.from,
-      age: r3.data.age,
-    });
-    if (!person) {
-      return error("Name and ‘where you're from’ cannot be empty.");
-    }
-
-    try {
-      return buildResponse(person);
-    } catch (e) {
-      return error(
-        e instanceof Error ? e.message : "Failed to generate ASCII art.",
-      );
-    }
-  },
+  async (args) => handlePersonHello(args),
 );
 
 server.tool(
   {
     name: "get-name",
     description:
-      "Same greeting as say-hello-to-me without the form: pass name, from (location), and age. Use when elicitation isn’t available.",
+      "Same behavior as say-hello-to-me: pass name, from (location), and age.",
     schema: personInputSchema,
     outputSchema: asciiOutputSchema,
   },
-  async (args) => {
-    const person = normalizePerson(args);
-    if (!person) {
-      return error("Name and ‘where you're from’ cannot be empty.");
-    }
-    try {
-      return buildResponse(person);
-    } catch (e) {
-      return error(
-        e instanceof Error ? e.message : "Failed to generate ASCII art.",
-      );
-    }
-  },
+  async (args) => handlePersonHello(args),
 );
 
 server.listen().then(() => {
