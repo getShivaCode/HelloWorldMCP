@@ -7,6 +7,7 @@ services:
     region: oregon
     plan: free
     buildCommand: npm ci && npm run build
+    # Must be npm start — not "node start" (that looks for a file called start).
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
