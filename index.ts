@@ -2,13 +2,27 @@ import { MCPServer, error, markdown, mix, object } from "mcp-use/server";
 import figlet from "figlet";
 import { z } from "zod";
 
+/** Render probes 0.0.0.0:$PORT — binding localhost makes the service look “down”. */
+function listenHost(): string {
+  if (process.env.HOST) return process.env.HOST;
+  if (process.env.RENDER ?? process.env.RENDER_EXTERNAL_URL) return "0.0.0.0";
+  return "localhost";
+}
+
+function publicBaseUrl(): string {
+  if (process.env.MCP_URL) return process.env.MCP_URL;
+  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+  const port = process.env.PORT ?? "3000";
+  return `http://localhost:${port}`;
+}
+
 const server = new MCPServer({
   name: "hello-ascii",
   title: "Hello ASCII",
   version: "1.0.0",
   description: 'One tool **hello**: ASCII art for "Hello {name}" or "Hello World" if name is omitted.',
-  host: process.env.HOST || "localhost",
-  baseUrl: process.env.MCP_URL || "http://localhost:3000",
+  host: listenHost(),
+  baseUrl: publicBaseUrl(),
 });
 
 const helloInputSchema = z.object({
