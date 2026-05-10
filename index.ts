@@ -8,6 +8,8 @@ const server = new MCPServer({
   title: "Hello ASCII",
   version: "1.0.0",
   description: "Ask for a name and show ASCII art: Hello {name}",
+  // Render (and similar hosts) require binding 0.0.0.0 — localhost is invisible to their health checks.
+  host: process.env.HOST || (process.env.RENDER ? "0.0.0.0" : "localhost"),
   baseUrl:
     process.env.MCP_URL ||
     process.env.RENDER_EXTERNAL_URL ||
