@@ -9,10 +9,19 @@ import { z } from "zod";
 
 const propsSchema = z.object({});
 
+/** ChatGPT app submission: required `openai/widgetDomain` (see Apps SDK “Widget domains”). */
+const WIDGET_PUBLIC_ORIGIN = "https://helloworldmcp.onrender.com";
+
 export const widgetMetadata: WidgetMetadata = {
   description: "Name field and button; calls hello to render ASCII.",
   props: propsSchema,
   exposeAsTool: false,
+  metadata: {
+    domain: WIDGET_PUBLIC_ORIGIN,
+    csp: {
+      connectDomains: [WIDGET_PUBLIC_ORIGIN],
+    },
+  },
 };
 
 type HelloOut = { line: string; ascii: string };
