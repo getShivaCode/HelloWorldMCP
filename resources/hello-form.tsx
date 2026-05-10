@@ -81,9 +81,7 @@ export default function HelloFormWidget() {
         )}
         {isSuccess && result && (
           <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              {result.line}
-            </p>
+            <p className="text-sm text-slate-400">{result.line}</p>
             <pre className="overflow-x-auto rounded-lg bg-black/60 p-4 text-xs leading-tight text-emerald-300">
               {result.ascii}
             </pre>

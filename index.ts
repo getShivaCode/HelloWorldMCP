@@ -10,11 +10,12 @@ import {
 import figlet from "figlet";
 import { z } from "zod";
 
+/** `line` = spoken greeting; `ascii` = figlet of **name only** (`World` if omitted). */
 function asciiHello(name?: string | undefined): { line: string; ascii: string } {
   const trimmed = (name?.trim() ?? "") || "";
   const label = trimmed.length > 0 ? trimmed : "World";
   const line = `Hello ${label}`;
-  const ascii = figlet.textSync(line, {
+  const ascii = figlet.textSync(label, {
     font: "Slant",
     horizontalLayout: "fitted",
   });
@@ -61,7 +62,7 @@ server.tool(
   {
     name: "hello",
     description:
-      'ASCII art for "Hello {name}". Pass **name** for a custom greeting; omit it for **Hello World**.',
+      "Structured **line** is `Hello {name}`; ASCII art is the **name** alone (Slant figlet). Omit **name** for `World`.",
     schema: helloInputSchema,
     outputSchema: helloOutputSchema,
   },
