@@ -1,0 +1,16 @@
+# Render Blueprint — deploy from the dashboard by linking this repo, or: render blueprint apply
+# Monorepo: set "Root Directory" to `hello-ascii` in the Render service settings instead of moving this file.
+services:
+  - type: web
+    name: hello-ascii-mcp
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # Optional override (otherwise server uses RENDER_EXTERNAL_URL from Render):
+      # - key: MCP_URL
+      #   sync: false

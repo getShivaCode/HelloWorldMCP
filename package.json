@@ -1,0 +1,34 @@
+{
+  "name": "hello-ascii",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "MCP server: hello-ascii",
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": ["mcp", "mcp-use", "ascii", "figlet"],
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "mcp-use build",
+    "dev": "mcp-use dev",
+    "start": "mcp-use start",
+    "deploy": "mcp-use deploy",
+    "postinstall": "mcp-use generate-types || exit 0"
+  },
+  "dependencies": {
+    "figlet": "^1.11.0",
+    "mcp-use": "latest",
+    "zod": "4.3.5"
+  },
+  "devDependencies": {
+    "@types/figlet": "^1.7.0",
+    "@types/node": "^25.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "lodash": ">=4.18.0"
+  }
+}
