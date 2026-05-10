@@ -16,9 +16,6 @@ coverage/
 # Linting
 .eslintcache
 
-# Local visitor counter (persists between dev runs)
-hello-visitor-count.json
-
 # Environment
 .env
 .env.local
