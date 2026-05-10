@@ -13,8 +13,9 @@
     "skipLibCheck": true,
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "jsx": "react-jsx"
   },
-  "include": ["*.ts", ".mcp-use/**/*.d.ts"],
+  "include": ["*.ts", "resources/**/*.tsx", ".mcp-use/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

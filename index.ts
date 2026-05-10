@@ -1,6 +1,25 @@
-import { MCPServer, error, markdown, mix, object } from "mcp-use/server";
+import {
+  MCPServer,
+  error,
+  markdown,
+  mix,
+  object,
+  text,
+  widget,
+} from "mcp-use/server";
 import figlet from "figlet";
 import { z } from "zod";
+
+function asciiHello(name?: string | undefined): { line: string; ascii: string } {
+  const trimmed = (name?.trim() ?? "") || "";
+  const label = trimmed.length > 0 ? trimmed : "World";
+  const line = `Hello ${label}`;
+  const ascii = figlet.textSync(line, {
+    font: "Slant",
+    horizontalLayout: "fitted",
+  });
+  return { line, ascii };
+}
 
 /** Render probes 0.0.0.0:$PORT — binding localhost makes the service look “down”. */
 function listenHost(): string {
@@ -47,24 +66,31 @@ server.tool(
     outputSchema: helloOutputSchema,
   },
   async ({ name }) => {
-    const trimmed = name?.trim() || "World";
-    const label = trimmed && trimmed.length > 0 ? trimmed : "World";
-    const line = `Hello ${label}`;
-    let ascii: string;
     try {
-      ascii = figlet.textSync(trimmed, {
-        font: "Slant",
-        horizontalLayout: "fitted",
-      });
+      const { line, ascii } = asciiHello(name);
+      const md = ["```", ascii, "```"].join("\n");
+      return mix(markdown(md), object({ line, ascii }));
     } catch (e) {
       return error(
         e instanceof Error ? e.message : "Failed to render ASCII art.",
       );
     }
-
-    const md = ["```", ascii, "```"].join("\n");
-    return mix(markdown(md), object({ line, ascii }));
   },
+);
+
+server.tool(
+  {
+    name: "hello-widget",
+    description:
+      "Open a compact form (name → ASCII). Same output as **hello**, without typed tool args.",
+    schema: z.object({}),
+    widget: { name: "hello-form", invoking: "Opening form…", invoked: "Ready" },
+  },
+  async () =>
+    widget({
+      props: {},
+      output: text("Enter a name in the widget, then generate ASCII."),
+    }),
 );
 
 server.listen().then(() => {
