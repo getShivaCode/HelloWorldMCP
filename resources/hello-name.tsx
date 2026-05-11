@@ -62,7 +62,7 @@ function readHelloOut(raw: unknown): HelloOut | null {
   return { line: o.line, ascii: o.ascii };
 }
 
-export default function HelloFormWidget() {
+export default function HelloNameWidget() {
   const { isPending: widgetBoot } = useWidget<Record<string, never>>();
   const { callTool, isPending, isSuccess, data, isError, error } =
     useCallTool("hello");
@@ -155,12 +155,12 @@ export default function HelloFormWidget() {
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <label
             className="text-sm font-medium text-slate-200"
-            htmlFor="hello-name"
+            htmlFor="hello-name-field"
           >
             Name
           </label>
           <input
-            id="hello-name"
+            id="hello-name-field"
             type="text"
             maxLength={10}
             autoComplete="name"

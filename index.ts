@@ -44,8 +44,8 @@ function publicBaseUrl(): string {
 }
 
 const server = new MCPServer({
-  name: "hello-ascii",
-  title: "Hello ASCII",
+  name: "ascii-art-hello",
+  title: "ASCII Art to say hello",
   version: "1.0.0",
   description: 'One tool **hello**: ASCII art for "Hello {name}" or "Hello World" if name is omitted.',
   host: listenHost(),
@@ -104,19 +104,22 @@ server.tool(
   },
 );
 
+async function openAsciiNameWidget() {
+  return widget({
+    props: {},
+    output: text("Enter a name in the widget, then generate ASCII."),
+  });
+}
+
 server.tool(
   {
-    name: "hello-widget",
+    name: "ASCII-art",
     description:
       "Open a compact form (name → ASCII). Same output as **hello**, without typed tool args.",
     schema: z.object({}),
-    widget: { name: "hello-form", invoking: "Opening form…", invoked: "Ready" },
+    widget: { name: "hello-name", invoking: "Opening form…", invoked: "Ready" },
   },
-  async () =>
-    widget({
-      props: {},
-      output: text("Enter a name in the widget, then generate ASCII."),
-    }),
+  openAsciiNameWidget,
 );
 
 server.listen().then(() => {
