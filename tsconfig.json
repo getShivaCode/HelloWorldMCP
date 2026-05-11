@@ -16,6 +16,12 @@
     "baseUrl": ".",
     "jsx": "react-jsx"
   },
-  "include": ["*.ts", "resources/**/*.tsx", ".mcp-use/**/*.d.ts"],
+  "include": [
+    "*.ts",
+    "*.d.ts",
+    "resources/**/*.tsx",
+    "vite-env.d.ts",
+    ".mcp-use/**/*.d.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

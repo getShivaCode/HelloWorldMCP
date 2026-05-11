@@ -8,16 +8,23 @@ import {
   widget,
 } from "mcp-use/server";
 import figlet from "figlet";
+import type { HelloFont } from "./hello-options.js";
+import { HELLO_FONTS } from "./hello-options.js";
 import { z } from "zod";
 
+const HELLO_HORIZONTAL_LAYOUT = "fitted" as const;
+
 /** `line` = spoken greeting; `ascii` = figlet of **name only** (`World` if omitted). */
-function asciiHello(name?: string | undefined): { line: string; ascii: string } {
+function asciiHello(
+  name?: string | undefined,
+  opts?: { font?: HelloFont | undefined },
+): { line: string; ascii: string } {
   const trimmed = (name?.trim() ?? "") || "";
   const label = trimmed.length > 0 ? trimmed : "World";
   const line = `Hello ${label}`;
   const ascii = figlet.textSync(label, {
-    font: "Slant",
-    horizontalLayout: "fitted",
+    font: opts?.font ?? "Slant",
+    horizontalLayout: HELLO_HORIZONTAL_LAYOUT,
   });
   return { line, ascii };
 }
@@ -45,30 +52,48 @@ const server = new MCPServer({
   baseUrl: publicBaseUrl(),
 });
 
+const helloOutputSchema = z.object({
+  line: z.string(),
+  ascii: z.string(),
+});
+
+/**
+ * Literal union (not cached `enum`) rebuilt each load — `mcp-use` HMR sometimes skipped
+ * refreshing **hello** when only `hello-options.ts` changed, leaving stale validators.
+ */
+const helloFontSchema = z
+  .union(
+    HELLO_FONTS.map((f) => z.literal(f)) as [
+      z.ZodLiteral<HelloFont>,
+      z.ZodLiteral<HelloFont>,
+      ...z.ZodLiteral<HelloFont>[],
+    ],
+  )
+  .default("Slant")
+  .describe("Bundled figlet font (default **Slant**). Allowed: " + HELLO_FONTS.join(", ") + ".");
+
 const helloInputSchema = z.object({
   name: z
     .string()
     .max(64)
     .optional()
     .describe('Optional; shown after "Hello". Omit or leave empty for "Hello World".'),
-});
-
-const helloOutputSchema = z.object({
-  line: z.string(),
-  ascii: z.string(),
+  font: helloFontSchema,
 });
 
 server.tool(
   {
     name: "hello",
     description:
-      "Structured **line** is `Hello {name}`; ASCII art is the **name** alone (Slant figlet). Omit **name** for `World`.",
+      "Structured **line** is `Hello {name}`; ASCII art is the **name** alone (figlet horizontal **fitted**). Omit **name** for `World`. Fonts: " +
+      HELLO_FONTS.join(", ") +
+      ". Default **Slant**.",
     schema: helloInputSchema,
     outputSchema: helloOutputSchema,
   },
-  async ({ name }) => {
+  async ({ name, font }) => {
     try {
-      const { line, ascii } = asciiHello(name);
+      const { line, ascii } = asciiHello(name, { font });
       const md = ["```", ascii, "```"].join("\n");
       return mix(markdown(md), object({ line, ascii }));
     } catch (e) {
