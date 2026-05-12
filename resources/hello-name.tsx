@@ -11,7 +11,11 @@ import {
 } from "../hello-options";
 import { z } from "zod";
 
-const propsSchema = z.object({});
+const propsSchema = z
+  .object({})
+  .describe(
+    "No server-supplied props. The user enters an optional **name** and chooses a bundled figlet **font** in the UI; submitting calls **hello** and displays **line** plus **ascii** (name-only FIGlet, same semantics as the **hello** tool).",
+  );
 
 function stripOrigin(raw: string | undefined): string | undefined {
   const v = raw?.trim().replace(/\/$/, "") ?? "";
@@ -39,7 +43,7 @@ const devOrigins =
 
 export const widgetMetadata: WidgetMetadata = {
   description:
-    "Name field—optional niche font menu (corner). hello uses figlet fitted + font (default Slant).",
+    "**hello-name** — compact form for the same behavior as **hello**: optional **name**, bundled figlet **font** (corner control; default **Slant**). On submit, calls **hello** and shows **line** (`Hello {name}` or `Hello World`) and **ascii** (fitted horizontal FIGlet of the **name** only—not the full greeting).",
   props: propsSchema,
   exposeAsTool: false,
   metadata: isDevBundle
@@ -55,6 +59,49 @@ export const widgetMetadata: WidgetMetadata = {
 
 type HelloOut = { line: string; ascii: string };
 
+type Theme = "dark" | "light";
+
+function themeClasses(theme: Theme) {
+  const L = theme === "light";
+  return {
+    loadingBox: L
+      ? "rounded-lg border border-stone-300/80 bg-stone-200/90 px-4 py-3 text-sm text-stone-700"
+      : "rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-400",
+    card: L
+      ? "group/card relative w-full max-w-xl space-y-4 rounded-xl border border-stone-400/50 bg-stone-200 p-5 pb-6 pt-6 shadow-lg"
+      : "group/card relative w-full max-w-xl space-y-4 rounded-xl border border-slate-700 bg-slate-900 p-5 pb-6 pt-6 shadow-lg",
+    cornerBtnBase:
+      "select-none rounded border px-2 py-1 backdrop-blur-sm transition-opacity focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40",
+    cornerBtnDark:
+      "border-slate-600/35 bg-slate-950/50 text-slate-400 opacity-[0.14] group-hover/card:opacity-40 hover:opacity-100",
+    cornerBtnDarkActive:
+      "border-slate-600/35 bg-slate-950/50 text-slate-400 opacity-100 ring-1 ring-cyan-500/35",
+    cornerBtnLight:
+      "border-stone-400/70 bg-stone-100/95 text-stone-700 opacity-40 group-hover/card:opacity-90 hover:opacity-100",
+    cornerBtnLightActive:
+      "border-stone-400 bg-stone-100 text-stone-800 opacity-100 ring-1 ring-cyan-600/25",
+    popover: L
+      ? "min-w-[11rem] rounded-lg border border-stone-400/60 bg-stone-100 p-2 shadow-xl"
+      : "min-w-[11rem] rounded-lg border border-slate-600 bg-slate-950 p-2 shadow-xl",
+    popoverLabel: L
+      ? "mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500"
+      : "mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500",
+    select: L
+      ? "w-full rounded-md border border-stone-400/70 bg-stone-100 px-2 py-1.5 text-xs text-stone-900 outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-600/20 disabled:opacity-50"
+      : "w-full rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/25 disabled:opacity-50",
+    formLabel: L ? "text-sm font-medium text-stone-900" : "text-sm font-medium text-slate-200",
+    input: L
+      ? "w-full rounded-lg border border-stone-400/70 bg-stone-100 px-3 py-2.5 text-center text-stone-900 placeholder:text-stone-500 outline-none ring-0 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-600/20 disabled:opacity-50"
+      : "w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-center text-slate-100 placeholder:text-slate-500 outline-none ring-0 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30 disabled:opacity-50",
+    resultLine: L ? "text-sm text-stone-700" : "text-sm text-slate-400",
+    asciiBox: L ? "overflow-x-auto rounded-lg bg-stone-300/45 p-4" : "overflow-x-auto rounded-lg bg-black/60 p-4",
+    asciiPre: L
+      ? "mx-auto w-max max-w-full text-center font-mono text-xs leading-tight whitespace-pre text-emerald-800"
+      : "mx-auto w-max max-w-full text-center font-mono text-xs leading-tight whitespace-pre text-emerald-300",
+    errorText: L ? "text-sm text-red-600" : "text-sm text-red-400",
+  };
+}
+
 function readHelloOut(raw: unknown): HelloOut | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -69,7 +116,9 @@ export default function HelloNameWidget() {
   const [name, setName] = useState("");
   const [font, setFont] = useState<HelloFont>("Slant");
   const [fontPanelOpen, setFontPanelOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>("dark");
   const fontPanelRef = useRef<HTMLDivElement>(null);
+  const tc = themeClasses(theme);
 
   useEffect(() => {
     if (!fontPanelOpen) return;
@@ -95,66 +144,87 @@ export default function HelloNameWidget() {
   if (widgetBoot) {
     return (
       <McpUseProvider autoSize>
-        <div className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-400">
-          Loading…
-        </div>
+        <div className={tc.loadingBox}>Loading…</div>
       </McpUseProvider>
     );
   }
 
+  const cornerAa =
+    tc.cornerBtnBase +
+    " text-[10px] font-semibold uppercase tracking-wider " +
+    (theme === "dark"
+      ? fontPanelOpen
+        ? tc.cornerBtnDarkActive
+        : tc.cornerBtnDark
+      : fontPanelOpen
+        ? tc.cornerBtnLightActive
+        : tc.cornerBtnLight);
+
+  const cornerTheme =
+    tc.cornerBtnBase +
+    " text-base leading-none " +
+    (theme === "dark" ? tc.cornerBtnDark : tc.cornerBtnLight);
+
   return (
     <McpUseProvider autoSize>
-      <div className="group/card relative w-full max-w-xl space-y-4 rounded-xl border border-slate-700 bg-slate-900 p-5 pb-6 pt-6 shadow-lg">
-        {/* Niche font: nearly hidden until hover / open (top-right). */}
+      <div className={tc.card}>
+        {/* Theme toggle + font (top-right). */}
         <div
           ref={fontPanelRef}
-          className="absolute right-3 top-3 z-30 flex flex-col items-end gap-1"
+          className="absolute right-3 top-3 z-30 flex flex-row items-start gap-1"
         >
           <button
             type="button"
-            aria-expanded={fontPanelOpen}
-            aria-controls="hello-font-popover"
-            aria-label="Figlet font"
-            onClick={() => setFontPanelOpen((open) => !open)}
-            className={
-              "select-none rounded border border-slate-600/35 bg-slate-950/50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 backdrop-blur-sm transition-opacity " +
-              (fontPanelOpen
-                ? "opacity-100 ring-1 ring-cyan-500/35"
-                : "opacity-[0.14] group-hover/card:opacity-40 hover:opacity-100 focus-visible:opacity-100")
-            }
+            role="switch"
+            aria-checked={theme === "light"}
+            aria-label="Toggle light or dark theme"
+            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            className={cornerTheme}
           >
-            Aa
+            {theme === "dark" ? "☀" : "☽"}
           </button>
-          {fontPanelOpen ? (
-            <div
-              id="hello-font-popover"
-              className="min-w-[11rem] rounded-lg border border-slate-600 bg-slate-950 p-2 shadow-xl"
+          <div className="flex flex-col items-end gap-1">
+            <button
+              type="button"
+              aria-expanded={fontPanelOpen}
+              aria-controls="hello-font-popover"
+              aria-label="Figlet font"
+              onClick={() => setFontPanelOpen((open) => !open)}
+              className={cornerAa}
             >
-              <label
-                htmlFor="hello-font-select"
-                className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-500"
+              Aa
+            </button>
+            {fontPanelOpen ? (
+              <div
+                id="hello-font-popover"
+                className={tc.popover}
               >
-                Font
-              </label>
-              <select
-                id="hello-font-select"
-                value={font}
-                disabled={isPending}
-                onChange={(e) => setFont(e.target.value as HelloFont)}
-                className="w-full rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/25 disabled:opacity-50"
-              >
-                {HELLO_FONTS.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
+                <label
+                  htmlFor="hello-font-select"
+                  className={tc.popoverLabel}
+                >
+                  Font
+                </label>
+                <select
+                  id="hello-font-select"
+                  value={font}
+                  disabled={isPending}
+                  onChange={(e) => setFont(e.target.value as HelloFont)}
+                  className={tc.select}
+                >
+                  {HELLO_FONTS.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+          </div>
         </div>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <label
-            className="text-sm font-medium text-slate-200"
+            className={tc.formLabel}
             htmlFor="hello-name-field"
           >
             Name
@@ -162,13 +232,13 @@ export default function HelloNameWidget() {
           <input
             id="hello-name-field"
             type="text"
-            maxLength={10}
+            maxLength={64}
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Tell me your name"
             disabled={isPending}
-            className="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-center text-slate-100 placeholder:text-slate-500 outline-none ring-0 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30 disabled:opacity-50"
+            className={tc.input}
           />
           <button
             type="submit"
@@ -179,15 +249,15 @@ export default function HelloNameWidget() {
           </button>
         </form>
         {isError && (
-          <p className="text-sm text-red-400" role="alert">
+          <p className={tc.errorText} role="alert">
             {error instanceof Error ? error.message : String(error)}
           </p>
         )}
         {isSuccess && result && (
           <div className="space-y-2">
-            <p className="text-sm text-slate-400">{result.line}</p>
-            <div className="overflow-x-auto rounded-lg bg-black/60 p-4">
-              <pre className="mx-auto w-max max-w-full text-center font-mono text-xs leading-tight whitespace-pre text-emerald-300">
+            <p className={tc.resultLine}>{result.line}</p>
+            <div className={tc.asciiBox}>
+              <pre className={tc.asciiPre}>
                 {result.ascii}
               </pre>
             </div>

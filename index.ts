@@ -1,33 +1,5 @@
-import {
-  MCPServer,
-  error,
-  markdown,
-  mix,
-  object,
-  text,
-  widget,
-} from "mcp-use/server";
-import figlet from "figlet";
-import type { HelloFont } from "./hello-options.js";
-import { HELLO_FONTS } from "./hello-options.js";
-import { z } from "zod";
-
-const HELLO_HORIZONTAL_LAYOUT = "fitted" as const;
-
-/** `line` = spoken greeting; `ascii` = figlet of **name only** (`World` if omitted). */
-function asciiHello(
-  name?: string | undefined,
-  opts?: { font?: HelloFont | undefined },
-): { line: string; ascii: string } {
-  const trimmed = (name?.trim() ?? "") || "";
-  const label = trimmed.length > 0 ? trimmed : "World";
-  const line = `Hello ${label}`;
-  const ascii = figlet.textSync(label, {
-    font: opts?.font ?? "Slant",
-    horizontalLayout: HELLO_HORIZONTAL_LAYOUT,
-  });
-  return { line, ascii };
-}
+import { MCPServer } from "mcp-use/server";
+import { registerTools } from "./tools/index.js";
 
 /** Render probes 0.0.0.0:$PORT — binding localhost makes the service look “down”. */
 function listenHost(): string {
@@ -46,81 +18,14 @@ function publicBaseUrl(): string {
 const server = new MCPServer({
   name: "ascii-art-hello",
   title: "ASCII Art to say hello",
-  version: "1.0.0",
-  description: 'One tool **hello**: ASCII art for "Hello {name}" or "Hello World" if name is omitted.',
+  version: "1.0.1",
+  description:
+    "Figlet ASCII hellos: **hello** returns a spoken greeting plus fitted ASCII of the name (omit the name for World; pick a bundled font). **ascii-art** opens a small widget for the same result without tool arguments.",
   host: listenHost(),
   baseUrl: publicBaseUrl(),
 });
 
-const helloOutputSchema = z.object({
-  line: z.string(),
-  ascii: z.string(),
-});
-
-/**
- * Literal union (not cached `enum`) rebuilt each load — `mcp-use` HMR sometimes skipped
- * refreshing **hello** when only `hello-options.ts` changed, leaving stale validators.
- */
-const helloFontSchema = z
-  .union(
-    HELLO_FONTS.map((f) => z.literal(f)) as [
-      z.ZodLiteral<HelloFont>,
-      z.ZodLiteral<HelloFont>,
-      ...z.ZodLiteral<HelloFont>[],
-    ],
-  )
-  .default("Slant")
-  .describe("Bundled figlet font (default **Slant**). Allowed: " + HELLO_FONTS.join(", ") + ".");
-
-const helloInputSchema = z.object({
-  name: z
-    .string()
-    .max(64)
-    .optional()
-    .describe('Optional; shown after "Hello". Omit or leave empty for "Hello World".'),
-  font: helloFontSchema,
-});
-
-server.tool(
-  {
-    name: "hello",
-    description:
-      "Structured **line** is `Hello {name}`; ASCII art is the **name** alone (figlet horizontal **fitted**). Omit **name** for `World`. Fonts: " +
-      HELLO_FONTS.join(", ") +
-      ". Default **Slant**.",
-    schema: helloInputSchema,
-    outputSchema: helloOutputSchema,
-  },
-  async ({ name, font }) => {
-    try {
-      const { line, ascii } = asciiHello(name, { font });
-      const md = ["```", ascii, "```"].join("\n");
-      return mix(markdown(md), object({ line, ascii }));
-    } catch (e) {
-      return error(
-        e instanceof Error ? e.message : "Failed to render ASCII art.",
-      );
-    }
-  },
-);
-
-async function openAsciiNameWidget() {
-  return widget({
-    props: {},
-    output: text("Enter a name in the widget, then generate ASCII."),
-  });
-}
-
-server.tool(
-  {
-    name: "ASCII-art",
-    description:
-      "Open a compact form (name → ASCII). Same output as **hello**, without typed tool args.",
-    schema: z.object({}),
-    widget: { name: "hello-name", invoking: "Opening form…", invoked: "Ready" },
-  },
-  openAsciiNameWidget,
-);
+registerTools(server);
 
 server.listen().then(() => {
   console.error("hello-ascii MCP server listening");
