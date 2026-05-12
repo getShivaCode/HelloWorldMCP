@@ -1,4 +1,5 @@
 import type { McpServerInstance } from "mcp-use/server";
+import { registerAsciiArtSldsTool } from "./ascii-art-slds.js";
 import { registerAsciiArtTool } from "./ascii-art.js";
 import { registerHelloTool } from "./hello.js";
 
@@ -6,4 +7,5 @@ import { registerHelloTool } from "./hello.js";
 export function registerTools(server: McpServerInstance): void {
   registerHelloTool(server);
   registerAsciiArtTool(server);
+  registerAsciiArtSldsTool(server);
 }

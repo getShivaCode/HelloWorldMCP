@@ -1,0 +1,277 @@
+/**
+ * SLDS-aligned subset for the hello-slds widget.
+ * Matches Salesforce Lightning Design System 2.x tokens and patterns (card, stacked form,
+ * brand button, shaded box) without shipping the full SLDS CSS — the upstream bundle does not
+ * reliably bundle under Vite’s widget pipeline (asset URLs + modern selectors).
+ */
+
+.slds-scope {
+  box-sizing: border-box;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #181818;
+}
+
+.slds-scope *,
+.slds-scope *::before,
+.slds-scope *::after {
+  box-sizing: inherit;
+}
+
+/* Spacing utilities used in markup */
+.slds-p-around_medium {
+  padding: 1rem;
+}
+.slds-m-bottom_small {
+  margin-bottom: 0.75rem;
+}
+.slds-m-bottom_medium {
+  margin-bottom: 1rem;
+}
+.slds-m-top_small {
+  margin-top: 0.75rem;
+}
+.slds-m-top_medium {
+  margin-top: 1rem;
+}
+.slds-m-bottom_x-small {
+  margin-bottom: 0.25rem;
+}
+
+.slds-align_absolute-center {
+  display: flex;
+  justify-content: center;
+}
+
+.slds-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slds-assistive-text {
+  position: absolute !important;
+  margin: -1px !important;
+  border: 0 !important;
+  padding: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+}
+
+/* Card */
+.slds-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.slds-has-flexi-truncate {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.slds-card {
+  position: relative;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid #c9c9c9;
+  border-radius: 0.25rem;
+  background-clip: padding-box;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.slds-card__header {
+  padding: 0.75rem 1rem;
+  margin: 0 0 0.75rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.slds-card__header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.slds-card__body {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.slds-card__body_inner {
+  padding: 0 1rem 1rem;
+}
+
+/* Typography */
+.slds-text-body_small {
+  font-size: 0.75rem;
+}
+.slds-text-body_regular {
+  font-size: 0.8125rem;
+}
+.slds-text-color_weak {
+  color: #706e6b;
+}
+.slds-text-heading_small {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Form */
+.slds-form_stacked .slds-form-element {
+  margin-bottom: 0.75rem;
+}
+
+.slds-form-element__label {
+  display: inline-block;
+  color: #3e3e3c;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-right: 0.75rem;
+  margin-bottom: 0.125rem;
+}
+
+.slds-form-element__control {
+  position: relative;
+  clear: left;
+}
+
+.slds-input {
+  background-color: #ffffff;
+  color: #181818;
+  border: 1px solid #c9c9c9;
+  border-radius: 0.25rem;
+  width: 100%;
+  transition: border 0.1s linear, background-color 0.1s linear;
+  display: inline-block;
+  padding: 0 1rem;
+  line-height: 2.375rem;
+  min-height: calc(2.25rem + 2px);
+  font-size: 0.8125rem;
+}
+
+.slds-input:focus {
+  outline: 0;
+  border-color: #1b96ff;
+  background-color: #ffffff;
+  box-shadow: 0 0 3px #0176d3;
+}
+
+.slds-input:disabled {
+  background-color: #f3f3f3;
+  border-color: #c9c9c9;
+  color: #747474;
+  cursor: not-allowed;
+}
+
+.slds-select_container {
+  position: relative;
+}
+
+.slds-select {
+  background-color: #ffffff;
+  color: #181818;
+  border: 1px solid #c9c9c9;
+  border-radius: 0.25rem;
+  width: 100%;
+  height: calc(2.25rem + 2px);
+  padding: 0 2rem 0 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 2.375rem;
+}
+
+.slds-select:focus {
+  outline: 0;
+  border-color: #1b96ff;
+  box-shadow: 0 0 3px #0176d3;
+}
+
+.slds-select:disabled {
+  background-color: #f3f3f3;
+  color: #747474;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.slds-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  line-height: 1.875rem;
+  min-height: calc(1.875rem + 2px);
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.slds-button:disabled,
+.slds-button[disabled] {
+  background-color: #c9c9c9;
+  border-color: #c9c9c9;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
+.slds-button_brand {
+  background-color: #0176d3;
+  border-color: #0176d3;
+  color: #ffffff;
+}
+
+.slds-button_brand:hover:not(:disabled) {
+  background-color: #014486;
+  border-color: #014486;
+  color: #ffffff;
+}
+
+.slds-button_brand:focus {
+  outline: 0;
+  box-shadow:
+    0 0 3px #ffffff,
+    0 0 3px 1px #0b5cab;
+}
+
+/* Box + theme shade */
+.slds-box {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #e5e5e5;
+}
+
+.slds-theme_shade {
+  background-color: #f3f3f3;
+  border-color: #e5e5e5;
+}
+
+.slds-scrollable_x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.slds-text-font_monospace {
+  font-family: Consolas, Menlo, Monaco, monospace;
+}
+
+/* Error alert */
+.slds-notify {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+}
+
+.slds-notify_alert {
+  display: flex;
+  align-items: center;
+}
+
+.slds-alert_error {
+  background-color: #feded8;
+  border: 1px solid #ea001e;
+  color: #181818;
+}

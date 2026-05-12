@@ -20,7 +20,7 @@ const server = new MCPServer({
   title: "ASCII Art to say hello",
   version: "1.0.1",
   description:
-    "Figlet ASCII hellos: **hello** returns a spoken greeting plus fitted ASCII of the name (omit the name for World; pick a bundled font). **ascii-art** opens a small widget for the same result without tool arguments.",
+    "Figlet ASCII hellos: **hello** returns a greeting line plus fitted ASCII of the name (omit name for World; pick a font). **ascii-art** opens a Tailwind-styled widget; **ascii-art-slds** opens the same flow with **Salesforce Lightning Design System** (SLDS) styling.",
   host: listenHost(),
   baseUrl: publicBaseUrl(),
 });
